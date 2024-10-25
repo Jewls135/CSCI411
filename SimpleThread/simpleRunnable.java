@@ -33,17 +33,18 @@ public class simpleRunnable implements Runnable{
 
 				// Catch interrupt
 
-				// if (Thread.currentThread().isInterrupted())
-				//	break;
+				if (Thread.currentThread().isInterrupted()) {
+					break;
+				}
 
 
 				// write to a file
 				outFile.println("Ashley");
-				System.out.println("Thread " + message + "   is running");
+				System.out.println("Thread " + message + " is running");
 			}
 
 			// close file
-			System.out.println("Thread " + message + "   is done");
+			System.out.println("Thread " + message + " is done");
 			outFile.close();
 
 		} catch (final IOException e) {

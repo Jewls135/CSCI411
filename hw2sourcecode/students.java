@@ -1,59 +1,60 @@
-/**
- * Student.java
- * 
- * 
- * 
- */
 import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class students implements Runnable {
 
-	private dashboard board;
-	//private Lock lockX;   // Please remove it if you use other synchroization tools. 
-	private String name;
+    private dashboard board;
+    private Semaphore hallwayLock;
+    private Lock officeLock;
+    private String name;
+    private TA ta;
 
-	public students(dashboard board,/*Lock loc*/ String name) {
-		this.name = name;
-		this.board = board;
-		//this.lockX = loc;  // Please remove it if you use other synchroization tools.   
-	}
+    public students(dashboard board, Semaphore lock, ReentrantLock doorLock, String name, TA assignedTA) {
+        this.name = name;
+        this.board = board;
+        this.hallwayLock = lock;
+        this.officeLock = doorLock;
+        this.ta = assignedTA;
+    }
 
-	public void run() {
-		
+    public void run() {
+        while (true) {
+            SleepUtilities.nap(60);		
+            board.postMessage(this.name + " needs help"); 
 
-		while (true) {
-			
-			//programming for a while
-			SleepUtilities.nap(10);		
-			//seek help from TA
-			
-            //post the status of the students whenever their status change.
-			board.postMessage(name+" need help"); 
+            // Attempt to go into the office
+            try {
+                hallwayLock.acquire();  
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt(); 
+                return; 
+            }
 
-			// if the waiting room has space,  wait in hallway. 
-			// Otherwise do more programming. 
-			board.waitHallway(name);
+            board.waitHallway(this.name);
 
-			
-			SleepUtilities.nap();
-			
-			//enter the office if TA is available
-			//wait in hallway if TA is not available
-			//leave if the hallway is full
-			
-			board.leaveHallway(name);
-			board.enterRoom(name);
-			
-			SleepUtilities.nap();
+            // Attempt to enter the TA's office
+            officeLock.lock();
+            hallwayLock.release();
+            board.enterRoom(this.name);
+            board.leaveHallway(this.name);
+            try {
+                if (ta.isSleeping()) {
+                    ta.wakeUp();  // Wake up the TA if they're sleeping
+                }
+            } catch(Exception e) {
 
-			//leave the office and go back
-			board.leaveRoom(name);
-			
-			
-		
-		}
-	}
+            }
+            SleepUtilities.nap();
 
+            // Leave the office
+            board.leaveRoom(this.name);
+            officeLock.unlock();
+            
+            synchronized (ta) {
+                ta.notify();  // Notify TA that we are finished
+            }
+           
+        }
+    }
 }

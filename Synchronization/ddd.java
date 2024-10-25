@@ -4,11 +4,11 @@
  * A basic counting semaphore using Java synchronization.
  */
 
-public class Semaphore
+public class ddd
 {
    private int value;
 
-   public Semaphore(int value) {
+   public ddd(int value) {
       this.value = value;
    }
 
@@ -24,7 +24,7 @@ public class Semaphore
       }
 	
 	  // semaphore requires busy waiting - spinning lock
-	 // while (value <= 0);
+     // while (value <= 0);
 
       value--;
    }

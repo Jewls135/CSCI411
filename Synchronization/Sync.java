@@ -1,7 +1,7 @@
 import java.util.concurrent.*;
 
 public class Sync {
-	private static int MAXIMUM_THREAD = 10;
+	private static final int MAXIMUM_THREAD = 10;
 	private static int num_priority1 = 5;
 	private static int num_priority2 = 5;
 	private static int count = 0;
@@ -12,12 +12,13 @@ public class Sync {
 		ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(2);
 
 		System.out.println("Start multithreading");
+		Object lock = new Object();
 
 		// Task 1 --- increase count
 		Runnable task1 = () -> {
 			Thread.currentThread().setPriority(num_priority1);
 			for (int i = 0; i < 100000; i++) {
-				count++;
+				synchronized(lock) {count++;}
 				//System.out.println("count in task 1 is "+count);
 				if (Thread.currentThread().isInterrupted())
 					break;
@@ -28,7 +29,7 @@ public class Sync {
 		Runnable task2 = () -> {
 			Thread.currentThread().setPriority(num_priority2);
 			for (int i = 0; i < 100000; i++) {
-				count--;
+					synchronized(lock){count--;}
 				if (Thread.currentThread().isInterrupted())
 					break;
 			}
